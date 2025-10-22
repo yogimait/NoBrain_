@@ -1,103 +1,129 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState } from 'react';
+import { Node, Edge, ReactFlowProvider } from 'reactflow'; 
+import Sidebar from '@/components/Sidebar';
+import WorkflowCanvas from '@/components/WorkflowCanvas';
+import NodeConfigPanel from '@/components/NodeConfigPanel';
+import Navbar from '@/components/Navbar'; // <-- IMPORT the new Navbar
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Plug, Rows, Rocket } from 'lucide-react';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+export default function HomePage() {
+  const [mode, setMode] = useState<'landing' | 'builder'>('landing');
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const addNode = (nodeType: string) => {
+    // This function remains the same
+    let icon;
+    switch (nodeType) {
+        case 'Web Scraper': icon = <Plug size={16} />; break;
+        case 'AI Summarizer': icon = <Rows size={16} />; break;
+        // ... other cases
+        default: icon = <Plug size={16} />;
+    }
+    const newNode: Node = {
+      id: String(Date.now() + Math.random()),
+      type: 'custom',
+      position: { x: 250, y: 50 + nodes.length * 50 },
+      data: { label: nodeType, icon: icon },
+    };
+    setNodes((prev) => [...prev, newNode]);
+  };
+
+  const selectNode = (id: string) => {
+    setSelectedNodeId(id);
+  };
+
+  if (mode === 'landing') {
+    // The landing page remains unchanged and works as intended.
+    return (
+      <main className="flex flex-col items-center justify-center min-h-screen p-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full filter blur-3xl opacity-30"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full filter blur-3xl opacity-30"></div>
+        <div className="flex w-full justify-between items-center mb-16 max-w-7xl relative z-10">
+            <div className="flex items-center gap-3">
+                <Rocket className="w-8 h-8 text-blue-400" />
+                <span className="text-3xl font-bold tracking-wide text-blue-300">NoBrain</span>
+            </div>
+             <Button variant="outline" className="text-gray-200 border-gray-700 hover:border-blue-500 hover:text-blue-300 transition-all" onClick={() => setMode('builder')}>
+                Go to Builder
+            </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 w-full max-w-7xl relative z-10">
+            <div className="flex flex-col justify-center">
+                <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight text-white">
+                AI automation so simple, <br className="hidden md:block"/> it’s a <span className="text-blue-400">No-Brainer.</span>
+                </h1>
+                <p className="text-lg mb-10 text-gray-300 max-w-md">
+                Design and deploy multi-agent AI workflows without writing a single line of code.
+                </p>
+                <div className="flex gap-4">
+                    <Button
+                        className="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold text-lg hover:bg-blue-700 transition"
+                        style={{ boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)' }}
+                        onClick={() => setMode('builder')}
+                    >
+                        Try the Demo
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="text-gray-200 px-8 py-3 rounded-xl font-semibold text-lg border-gray-700 hover:border-purple-500 hover:text-purple-300 transition"
+                    >
+                        Explore Templates
+                    </Button>
+                </div>
+            </div>
+            <div className="relative flex items-center justify-center">
+                <Card className="p-8 bg-gradient-to-br from-gray-800/60 to-gray-900/60 border border-blue-700/50 rounded-2xl w-full max-w-xl aspect-[16/9] flex items-center justify-center" style={{ boxShadow: '0 8px 32px rgba(59, 130, 246, 0.2)' }}>
+                    <div className="grid grid-cols-3 gap-4 items-center">
+                        <Card className="bg-gray-700/50 p-3 rounded-lg flex items-center gap-2 border border-blue-600/50">
+                            <Plug className="w-5 h-5 text-blue-300" />
+                            <span className="text-sm font-semibold text-white">Web Scraper</span>
+                        </Card>
+                        <div className="text-blue-400 text-2xl justify-self-center">→</div>
+                        <Card className="bg-gray-700/50 p-3 rounded-lg flex items-center gap-2 border border-purple-600/50">
+                            <Rows className="w-5 h-5 text-purple-300" />
+                            <span className="text-sm font-semibold text-white">Summarizer</span>
+                        </Card>
+                    </div>
+                </Card>
+            </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    );
+  }
+
+  // --- Builder Page JSX (UPDATED) ---
+  return (
+    <div className="h-screen w-screen flex flex-col bg-gradient-to-br from-gray-950 to-purple-950/20 text-gray-100">
+      {/* RENDER THE NEW NAVBAR COMPONENT */}
+      <Navbar />
+
+      {/* Main content area that fills the remaining space */}
+      <main className="flex flex-1 pt-16 overflow-hidden">
+        <ReactFlowProvider>
+          <Sidebar addNode={addNode} />
+          <div className="flex-1 relative">
+            <WorkflowCanvas
+              nodes={nodes}
+              setNodes={setNodes}
+              edges={edges}
+              setEdges={setEdges}
+              onNodeClick={selectNode}
+            />
+          </div>
+          {selectedNodeId && (
+            <NodeConfigPanel
+              node={nodes.find((n) => n.id === selectedNodeId) || null}
+              onClose={() => setSelectedNodeId(null)}
+            />
+          )}
+        </ReactFlowProvider>
+      </main>
     </div>
   );
 }
