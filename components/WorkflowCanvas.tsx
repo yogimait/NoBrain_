@@ -33,12 +33,12 @@ interface WorkflowCanvasProps {
 interface CustomNodeProps {
   data: {
     label: string;
-    icon: JSX.Element; // FIX: Added icon to the props interface
+    icon: React.ReactElement; // FIX: Added icon to the props interface
   };
-  isSelected: boolean;
+  selected?: boolean;
 }
 
-const CustomNode: React.FC<CustomNodeProps> = ({ data, isSelected }) => {
+const CustomNode: React.FC<CustomNodeProps> = ({ data, selected = false }) => {
   const baseBorderStyle = '1px solid rgba(59, 130, 246, 0.5)';
   const selectedBorderStyle = '1px solid rgba(59, 130, 246, 1)';
   const baseShadowStyle = '0 0 10px rgba(59, 130, 246, 0.4), inset 0 0 5px rgba(59, 130, 246, 0.2)';
@@ -48,8 +48,8 @@ const CustomNode: React.FC<CustomNodeProps> = ({ data, isSelected }) => {
     <Card
       className="relative p-3 min-w-[150px] bg-gray-800/70 rounded-lg flex items-center gap-3 cursor-pointer transition-all duration-200"
       style={{
-        border: isSelected ? selectedBorderStyle : baseBorderStyle,
-        boxShadow: isSelected ? selectedShadowStyle : baseShadowStyle,
+        border: selected ? selectedBorderStyle : baseBorderStyle,
+        boxShadow: selected ? selectedShadowStyle : baseShadowStyle,
       }}
     >
       <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-purple-500" />

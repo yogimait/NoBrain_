@@ -1,62 +1,108 @@
-import React from 'react';
-import { Plug, Rows, Text, Bot, MessageSquare, Mail, Layers } from 'lucide-react';
+'use client';
+
+import { Card } from '@/components/ui/card';
+import { 
+  Plug, 
+  Rows, 
+  Edit, 
+  MessageSquare, 
+  Bot, 
+  Text, 
+  Mail,
+  Brain,
+  Database,
+  FileText,
+  Camera,
+  Settings,
+  Target,
+  Timer,
+  Calendar,
+  RefreshCw,
+  Link,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Zap,
+  Upload,
+  Rss
+} from 'lucide-react';
 
 interface SidebarProps {
   addNode: (nodeType: string) => void;
 }
 
-// Draggable Node component for the sidebar
-const DraggableNode: React.FC<{ type: string; label: string; icon: React.ReactNode }> = ({ type, label, icon }) => {
-  const onDragStart = (event: React.DragEvent, nodeType: string) => {
-    event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
-  };
+const sidebarElements = [
+  // AI Bots & LLM Models
+  { id: 'gemini', name: 'Gemini API', icon: <Brain className="w-4 h-4" />, color: 'text-blue-300', category: 'AI Models' },
+  { id: 'gpt4', name: 'GPT-4', icon: <Bot className="w-4 h-4" />, color: 'text-green-300', category: 'AI Models' },
+  { id: 'claude', name: 'Claude', icon: <Brain className="w-4 h-4" />, color: 'text-purple-300', category: 'AI Models' },
+  
+  // External Platforms
+  { id: 'twitter-api', name: 'Twitter API', icon: <Twitter className="w-4 h-4" />, color: 'text-blue-300', category: 'Platforms' },
+  { id: 'linkedin-api', name: 'LinkedIn API', icon: <Linkedin className="w-4 h-4" />, color: 'text-blue-300', category: 'Platforms' },
+  { id: 'instagram-api', name: 'Instagram API', icon: <Instagram className="w-4 h-4" />, color: 'text-pink-300', category: 'Platforms' },
+  { id: 'email-service', name: 'Email Service', icon: <Mail className="w-4 h-4" />, color: 'text-red-300', category: 'Platforms' },
+  { id: 'slack-message', name: 'Slack Message', icon: <MessageSquare className="w-4 h-4" />, color: 'text-purple-300', category: 'Platforms' },
+  
+  // Data Sources
+  { id: 'rss-feed', name: 'RSS Feed', icon: <Rss className="w-4 h-4" />, color: 'text-orange-300', category: 'Data Sources' },
+  { id: 'webhook', name: 'Webhook', icon: <Zap className="w-4 h-4" />, color: 'text-yellow-300', category: 'Data Sources' },
+  { id: 'database', name: 'Database', icon: <Database className="w-4 h-4" />, color: 'text-green-300', category: 'Data Sources' },
+  { id: 'file-upload', name: 'File Upload', icon: <Upload className="w-4 h-4" />, color: 'text-blue-300', category: 'Data Sources' },
+  
+  // Processing Elements
+  { id: 'text-processor', name: 'Text Processor', icon: <FileText className="w-4 h-4" />, color: 'text-gray-300', category: 'Processing' },
+  { id: 'image-processor', name: 'Image Processor', icon: <Camera className="w-4 h-4" />, color: 'text-purple-300', category: 'Processing' },
+  { id: 'data-transformer', name: 'Data Transformer', icon: <Settings className="w-4 h-4" />, color: 'text-indigo-300', category: 'Processing' },
+  { id: 'condition-check', name: 'Condition Check', icon: <Target className="w-4 h-4" />, color: 'text-red-300', category: 'Processing' },
+  
+  // Timing & Control
+  { id: 'delay', name: 'Delay', icon: <Timer className="w-4 h-4" />, color: 'text-yellow-300', category: 'Control' },
+  { id: 'schedule', name: 'Schedule', icon: <Calendar className="w-4 h-4" />, color: 'text-green-300', category: 'Control' },
+  { id: 'loop', name: 'Loop', icon: <RefreshCw className="w-4 h-4" />, color: 'text-blue-300', category: 'Control' },
+  { id: 'merge', name: 'Merge', icon: <Link className="w-4 h-4" />, color: 'text-purple-300', category: 'Control' },
 
-  return (
-    <div
-      className="flex items-center gap-3 p-3 bg-gray-800/70 rounded-lg cursor-grab active:cursor-grabbing border border-gray-700 hover:border-blue-500 transition-all duration-200 group"
-      style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.5))' }}
-      onDragStart={(event) => onDragStart(event, type)}
-      draggable
-    >
-      <div className="p-2 bg-gray-700/50 rounded-md text-blue-400 group-hover:text-blue-300 transition-colors">
-        {icon}
-      </div>
-      <span className="font-medium text-gray-300 group-hover:text-white transition-colors">{label}</span>
-    </div>
-  );
-};
+  // Legacy elements for compatibility
+  { id: 'web-scraper', name: 'Web Scraper', icon: <Plug className="w-4 h-4" />, color: 'text-blue-300', category: 'Legacy' },
+  { id: 'ai-summarizer', name: 'AI Summarizer', icon: <Rows className="w-4 h-4" />, color: 'text-green-300', category: 'Legacy' },
+  { id: 'content-polisher', name: 'Content Polisher', icon: <Edit className="w-4 h-4" />, color: 'text-purple-300', category: 'Legacy' },
+  { id: 'ai-text-generator', name: 'AI Text Generator', icon: <Bot className="w-4 h-4" />, color: 'text-blue-300', category: 'Legacy' },
+  { id: 'sentiment-analyzer', name: 'Sentiment Analyzer', icon: <Text className="w-4 h-4" />, color: 'text-yellow-300', category: 'Legacy' },
+  { id: 'email-generator', name: 'Email Generator', icon: <Mail className="w-4 h-4" />, color: 'text-red-300', category: 'Legacy' }
+];
 
 export default function Sidebar({ addNode }: SidebarProps) {
   return (
-    <aside className="w-72 bg-gray-900/60 backdrop-blur-sm p-4 border-r border-gray-800 flex flex-col space-y-6 overflow-y-auto pt-6">
-      <h2 className="text-xl font-semibold text-blue-300 border-b border-gray-700 pb-3 mb-2">
-        Nodes
-      </h2>
-
+    <div className="w-80 bg-gray-900/60 backdrop-blur-sm border-r border-gray-800 p-4 overflow-y-auto">
+      <h3 className="text-white font-semibold mb-4 text-lg">Workflow Elements</h3>
+      
       <div className="space-y-4">
-        {/* Triggers */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">Triggers</h3>
-          <DraggableNode type="Web Scraper" label="Web Scraper" icon={<Plug size={18} />} />
-        </div>
-        
-        {/* AI Agents */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mt-6 mb-3">AI Agents</h3>
-          <DraggableNode type="AI Text Generator" label="AI Text Generator" icon={<Bot size={18} />} />
-          <DraggableNode type="AI Summarizer" label="AI Summarizer" icon={<Rows size={18} />} />
-          <DraggableNode type="Sentiment Analyzer" label="Sentiment Analyzer" icon={<Text size={18} />} />
-          <DraggableNode type="Email Generator" label="Email Generator" icon={<Mail size={18} />} />
-        </div>
-
-        {/* Tools */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mt-6 mb-3">Tools</h3>
-          <DraggableNode type="Slack Message" label="Slack Message" icon={<MessageSquare size={18} />} />
-          <DraggableNode type="Content Polisher" label="Content Polisher" icon={<Layers size={18} />} />
-        </div>
+        {Object.entries(sidebarElements.reduce((acc, element) => {
+          if (!acc[element.category]) acc[element.category] = [];
+          acc[element.category].push(element);
+          return acc;
+        }, {} as Record<string, typeof sidebarElements>)).map(([category, elements]) => (
+          <div key={category} className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">{category}</h4>
+            <div className="space-y-2">
+              {elements.map((element) => (
+                <Card
+                  key={element.id}
+                  className="p-3 cursor-pointer transition-all duration-200 hover:scale-105 border border-gray-600 hover:border-gray-500 hover:bg-gray-700/50"
+                  onClick={() => addNode(element.name)}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`${element.color}`}>
+                      {element.icon}
+                    </div>
+                    <span className="text-gray-300 text-sm font-medium">{element.name}</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
-    </aside>
+    </div>
   );
 }
