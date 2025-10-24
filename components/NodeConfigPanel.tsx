@@ -5,83 +5,331 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { X } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { 
+  X, 
+  Eye, 
+  EyeOff, 
+  Key, 
+  Brain, 
+  Database, 
+  Settings,
+  CheckCircle,
+  AlertCircle,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Mail,
+  MessageSquare,
+  Zap,
+  Rss,
+  Upload
+} from 'lucide-react';
+
+// Platform configurations for credentials
+const platformConfigs = {
+  'Twitter API': {
+    icon: <Twitter className="w-5 h-5" />,
+    color: 'text-blue-400',
+    fields: [
+      { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'Enter your Twitter API key' },
+      { name: 'apiSecret', label: 'API Secret', type: 'password', placeholder: 'Enter your Twitter API secret' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'Enter your access token' },
+      { name: 'accessTokenSecret', label: 'Access Token Secret', type: 'password', placeholder: 'Enter your access token secret' }
+    ]
+  },
+  'LinkedIn API': {
+    icon: <Linkedin className="w-5 h-5" />,
+    color: 'text-blue-600',
+    fields: [
+      { name: 'clientId', label: 'Client ID', type: 'text', placeholder: 'Enter your LinkedIn Client ID' },
+      { name: 'clientSecret', label: 'Client Secret', type: 'password', placeholder: 'Enter your LinkedIn Client Secret' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'Enter your access token' }
+    ]
+  },
+  'Instagram API': {
+    icon: <Instagram className="w-5 h-5" />,
+    color: 'text-pink-500',
+    fields: [
+      { name: 'appId', label: 'App ID', type: 'text', placeholder: 'Enter your Instagram App ID' },
+      { name: 'appSecret', label: 'App Secret', type: 'password', placeholder: 'Enter your Instagram App Secret' },
+      { name: 'accessToken', label: 'Access Token', type: 'password', placeholder: 'Enter your access token' }
+    ]
+  },
+  'Email Service': {
+    icon: <Mail className="w-5 h-5" />,
+    color: 'text-red-500',
+    fields: [
+      { name: 'smtpHost', label: 'SMTP Host', type: 'text', placeholder: 'smtp.gmail.com' },
+      { name: 'smtpPort', label: 'SMTP Port', type: 'number', placeholder: '587' },
+      { name: 'username', label: 'Username', type: 'email', placeholder: 'your-email@gmail.com' },
+      { name: 'password', label: 'Password', type: 'password', placeholder: 'Enter your email password' }
+    ]
+  },
+  'Slack Message': {
+    icon: <MessageSquare className="w-5 h-5" />,
+    color: 'text-purple-500',
+    fields: [
+      { name: 'webhookUrl', label: 'Webhook URL', type: 'url', placeholder: 'https://hooks.slack.com/services/...' },
+      { name: 'botToken', label: 'Bot Token', type: 'password', placeholder: 'xoxb-your-bot-token' }
+    ]
+  },
+  'Database': {
+    icon: <Database className="w-5 h-5" />,
+    color: 'text-green-500',
+    fields: [
+      { name: 'host', label: 'Host', type: 'text', placeholder: 'localhost' },
+      { name: 'port', label: 'Port', type: 'number', placeholder: '5432' },
+      { name: 'database', label: 'Database Name', type: 'text', placeholder: 'your_database' },
+      { name: 'username', label: 'Username', type: 'text', placeholder: 'your_username' },
+      { name: 'password', label: 'Password', type: 'password', placeholder: 'Enter your password' }
+    ]
+  },
+  'Webhook': {
+    icon: <Zap className="w-5 h-5" />,
+    color: 'text-yellow-500',
+    fields: [
+      { name: 'webhookUrl', label: 'Webhook URL', type: 'url', placeholder: 'https://your-webhook-url.com' },
+      { name: 'secretKey', label: 'Secret Key', type: 'password', placeholder: 'Enter your webhook secret' }
+    ]
+  },
+  'RSS Feed': {
+    icon: <Rss className="w-5 h-5" />,
+    color: 'text-orange-500',
+    fields: [
+      { name: 'feedUrl', label: 'RSS Feed URL', type: 'url', placeholder: 'https://example.com/feed.xml' },
+      { name: 'updateInterval', label: 'Update Interval (minutes)', type: 'number', placeholder: '30' }
+    ]
+  },
+  'File Upload': {
+    icon: <Upload className="w-5 h-5" />,
+    color: 'text-blue-500',
+    fields: [
+      { name: 'maxFileSize', label: 'Max File Size (MB)', type: 'number', placeholder: '10' },
+      { name: 'allowedTypes', label: 'Allowed File Types', type: 'text', placeholder: 'pdf,doc,docx,txt' }
+    ]
+  }
+};
 
 interface NodeConfigPanelProps {
   node: Node | null;
   onClose: () => void;
-  // You would also pass a function here to update the global nodes state
-  // onUpdateNode: (nodeId: string, newData: any) => void;
+  onUpdateNode?: (nodeId: string, newData: any) => void;
 }
 
-export default function NodeConfigPanel({ node, onClose }: NodeConfigPanelProps) {
+export default function NodeConfigPanel({ node, onClose, onUpdateNode }: NodeConfigPanelProps) {
   // Local state to manage form data
-  const [label, setLabel] = useState(node?.data?.label || '');
-  const [prompt, setPrompt] = useState(node?.data?.prompt || '');
-  const [url, setUrl] = useState(node?.data?.url || '');
+  const [credentials, setCredentials] = useState<Record<string, string>>({});
+  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+  const [aiModel, setAiModel] = useState('');
+  const [aiMemory, setAiMemory] = useState('');
+  const [storageEnabled, setStorageEnabled] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<'idle' | 'validating' | 'success' | 'error'>('idle');
 
   // Update local state when a different node is selected
   useEffect(() => {
     if (node) {
-      setLabel(node.data?.label || '');
-      setPrompt(node.data?.prompt || '');
-      setUrl(node.data?.url || '');
+      setCredentials(node.data?.credentials || {});
+      setAiModel(node.data?.aiModel || '');
+      setAiMemory(node.data?.aiMemory || '');
+      setStorageEnabled(node.data?.storageEnabled || false);
     }
   }, [node]);
 
   if (!node) {
-    // This part is not visible when a node is selected, so no changes needed.
     return null;
   }
 
-  const handleSaveChanges = () => {
-    // Here you would call the onUpdateNode prop to save changes globally
-    // For example:
-    // onUpdateNode(node.id, { label, prompt, url });
-    console.log('Saving changes:', { label, prompt, url });
-    onClose(); // Close panel after saving
+  const handleInputChange = (fieldName: string, value: string) => {
+    setCredentials(prev => ({ ...prev, [fieldName]: value }));
   };
 
-  // Render specific input fields based on the node type (label)
-  const renderNodeSpecificFields = () => {
-    switch (node.data.label) {
-      case 'Web Scraper':
-        return (
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="url" className="text-gray-300">Target URL</Label>
-            <Input
-              id="url"
-              type="text"
-              placeholder="https://example.com"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="bg-gray-800 border-gray-700 focus-visible:ring-blue-500"
-            />
-          </div>
-        );
-      case 'AI Summarizer':
-      case 'AI Text Generator':
-      case 'Content Polisher':
-        return (
-          <div className="grid w-full items-center gap-2">
-            <Label htmlFor="prompt" className="text-gray-300">Custom Prompt</Label>
-            <Textarea
-              id="prompt"
-              placeholder="e.g., Summarize this content in 3 bullet points."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="bg-gray-800 border-gray-700 focus-visible:ring-blue-500"
-              rows={5}
-            />
-          </div>
-        );
-      default:
-        return <p className="text-sm text-gray-500">This node has no specific configuration.</p>;
+  const togglePasswordVisibility = (fieldName: string) => {
+    setShowPasswords(prev => ({ ...prev, [fieldName]: !prev[fieldName] }));
+  };
+
+  const handleSaveChanges = () => {
+    const updatedData = {
+      ...node.data,
+      credentials,
+      aiModel,
+      aiMemory,
+      storageEnabled
+    };
+    
+    if (onUpdateNode) {
+      onUpdateNode(node.id, updatedData);
     }
+    
+    console.log('Saving changes:', updatedData);
+    onClose();
+  };
+
+  const validateCredentials = async () => {
+    setValidationStatus('validating');
+    
+    // Simulate API validation
+    setTimeout(() => {
+      const isValid = Math.random() > 0.3; // 70% success rate for demo
+      setValidationStatus(isValid ? 'success' : 'error');
+    }, 2000);
+  };
+
+  const isAiAgent = node.data.label?.includes('Agent');
+  const platformConfig = platformConfigs[node.data.label as keyof typeof platformConfigs];
+
+  const renderCredentialsSection = () => {
+    if (!platformConfig) return null;
+
+        return (
+      <Card className="bg-gray-800/50 border-gray-600 p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`p-2 rounded-lg bg-gray-700/50 ${platformConfig.color}`}>
+            {platformConfig.icon}
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-sm">Credentials</h3>
+            <p className="text-gray-400 text-xs">Configure your {node.data.label} credentials</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {platformConfig.fields.map((field) => (
+            <div key={field.name} className="space-y-1">
+              <Label htmlFor={field.name} className="text-gray-300 text-xs font-medium">
+                {field.label}
+              </Label>
+              <div className="relative">
+            <Input
+                  id={field.name}
+                  type={field.type === 'password' && !showPasswords[field.name] ? 'password' : field.type === 'password' ? 'text' : field.type}
+                  placeholder={field.placeholder}
+                  value={credentials[field.name] || ''}
+                  onChange={(e) => handleInputChange(field.name, e.target.value)}
+                  className="bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 pr-10 text-sm"
+                />
+                {field.type === 'password' && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white h-6 w-6 p-0"
+                    onClick={() => togglePasswordVisibility(field.name)}
+                  >
+                    {showPasswords[field.name] ? (
+                      <EyeOff className="w-3 h-3" />
+                    ) : (
+                      <Eye className="w-3 h-3" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 flex justify-between items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={validateCredentials}
+            disabled={validationStatus === 'validating'}
+            className="text-gray-300 border-gray-600 hover:border-blue-500 hover:text-blue-300 text-xs"
+          >
+            {validationStatus === 'validating' ? 'Testing...' : 'Test Connection'}
+          </Button>
+          
+          <div className="text-xs">
+            {validationStatus === 'success' && (
+              <span className="text-green-400 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                Connected
+              </span>
+            )}
+            {validationStatus === 'error' && (
+              <span className="text-red-400 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                Failed
+              </span>
+            )}
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  const renderAiAgentConfiguration = () => {
+    if (!isAiAgent) return null;
+
+        return (
+      <Card className="bg-gray-800/50 border-gray-600 p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-gray-700/50 text-blue-400">
+            <Brain className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-white font-semibold text-sm">AI Agent Configuration</h3>
+            <p className="text-gray-400 text-xs">Configure your AI agent settings</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* AI Model Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="ai-model" className="text-gray-300 text-xs font-medium">AI Model</Label>
+            <select
+              id="ai-model"
+              value={aiModel}
+              onChange={(e) => setAiModel(e.target.value)}
+              className="w-full bg-gray-700/50 border border-gray-600 text-white rounded-md px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">Select AI Model</option>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="claude-3">Claude 3</option>
+              <option value="claude-2">Claude 2</option>
+              <option value="gemini-pro">Gemini Pro</option>
+              <option value="dall-e-3">DALL-E 3</option>
+            </select>
+          </div>
+
+          {/* AI Memory/Context */}
+          <div className="space-y-2">
+            <Label htmlFor="ai-memory" className="text-gray-300 text-xs font-medium">Work Context</Label>
+            <Textarea
+              id="ai-memory"
+              placeholder="Define the work context and memory for this AI agent..."
+              value={aiMemory}
+              onChange={(e) => setAiMemory(e.target.value)}
+              className="bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 text-sm"
+              rows={3}
+            />
+          </div>
+
+          {/* Storage Option */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-green-400" />
+                <Label htmlFor="storage-enabled" className="text-gray-300 text-xs font-medium">Save Response in DB</Label>
+              </div>
+              <input
+                id="storage-enabled"
+                type="checkbox"
+                checked={storageEnabled}
+                onChange={(e) => setStorageEnabled(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+              />
+            </div>
+            <p className="text-gray-500 text-xs">Enable to save AI responses to database for future reference</p>
+          </div>
+        </div>
+      </Card>
+    );
   };
 
   return (
-    <aside className="w-80 bg-gray-900/60 backdrop-blur-sm border-l border-gray-800 p-6 flex flex-col gap-6 absolute top-0 right-0 h-full z-10 animate-in slide-in-from-right-8 duration-300">
+    <aside className="w-96 bg-gray-900/60 backdrop-blur-sm border-l border-gray-800 p-6 flex flex-col gap-6 absolute top-0 right-0 h-full z-10 animate-in slide-in-from-right-8 duration-300 overflow-y-auto">
       <div className="flex justify-between items-center">
         <h2 className="font-bold text-xl text-blue-300">
           Configure Node
@@ -93,18 +341,21 @@ export default function NodeConfigPanel({ node, onClose }: NodeConfigPanelProps)
       
       <div className="flex flex-col gap-5 flex-grow">
         <div className="grid w-full items-center gap-2">
-          <Label htmlFor="node-type" className="text-gray-300">Node Type</Label>
+          <Label htmlFor="node-type" className="text-gray-300 text-sm font-medium">Node Type</Label>
           <Input
             id="node-type"
             type="text"
-            value={label}
+            value={node.data.label}
             readOnly
-            className="bg-gray-800 border-gray-700 cursor-not-allowed"
+            className="bg-gray-800 border-gray-700 cursor-not-allowed text-sm"
           />
         </div>
 
-        {/* Render fields specific to the selected node */}
-        {renderNodeSpecificFields()}
+        {/* Render AI Agent Configuration */}
+        {renderAiAgentConfiguration()}
+
+        {/* Render Credentials Section */}
+        {renderCredentialsSection()}
       </div>
 
       <Button

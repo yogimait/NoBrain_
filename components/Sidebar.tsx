@@ -32,10 +32,10 @@ interface SidebarProps {
 }
 
 const sidebarElements = [
-  // AI Bots & LLM Models
-  { id: 'gemini', name: 'Gemini API', icon: <Brain className="w-4 h-4" />, color: 'text-blue-300', category: 'AI Models' },
-  { id: 'gpt4', name: 'GPT-4', icon: <Bot className="w-4 h-4" />, color: 'text-green-300', category: 'AI Models' },
-  { id: 'claude', name: 'Claude', icon: <Brain className="w-4 h-4" />, color: 'text-purple-300', category: 'AI Models' },
+  // AI Agents
+  { id: 'gemini', name: 'Gemini Agent', icon: <Brain className="w-4 h-4" />, color: 'text-blue-300', category: 'AI Agents' },
+  { id: 'gpt4', name: 'GPT-4 Agent', icon: <Bot className="w-4 h-4" />, color: 'text-green-300', category: 'AI Agents' },
+  { id: 'claude', name: 'Claude Agent', icon: <Brain className="w-4 h-4" />, color: 'text-purple-300', category: 'AI Agents' },
   
   // External Platforms
   { id: 'twitter-api', name: 'Twitter API', icon: <Twitter className="w-4 h-4" />, color: 'text-blue-300', category: 'Platforms' },
