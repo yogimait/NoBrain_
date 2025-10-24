@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import NodeConfigPanel from '@/components/NodeConfigPanel';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -199,9 +200,9 @@ const platforms = [
   { id: 'mixpanel', name: 'Mixpanel', icon: <BarChart3 className="w-5 h-5" />, color: 'text-purple-500', category: 'Analytics' },
   
   // Automation
-  { id: 'zapier', name: 'Zapier', icon: <Zap className="w-5 h-5" />, color: 'text-orange-500', category: 'Automation' },
-  { id: 'make', name: 'Make', icon: <Settings className="w-5 h-5" />, color: 'text-purple-600', category: 'Automation' },
-  { id: 'ifttt', name: 'IFTTT', icon: <Link className="w-5 h-5" />, color: 'text-red-500', category: 'Automation' }
+  // { id: 'zapier', name: 'Zapier', icon: <Zap className="w-5 h-5" />, color: 'text-orange-500', category: 'Automation' },
+  // { id: 'make', name: 'Make', icon: <Settings className="w-5 h-5" />, color: 'text-purple-600', category: 'Automation' },
+  // { id: 'ifttt', name: 'IFTTT', icon: <Link className="w-5 h-5" />, color: 'text-red-500', category: 'Automation' }
 ];
 
 // Enhanced Workflow types
@@ -313,11 +314,11 @@ const nodeTypes = {
 
 // Sidebar elements for drag and drop
 const sidebarElements = [
-  // AI Bots & LLM Models
-  { id: 'gemini', name: 'Gemini API', icon: <Brain className="w-4 h-4" />, color: 'text-blue-300', category: 'AI Models' },
-  { id: 'gpt4', name: 'GPT-4', icon: <Bot className="w-4 h-4" />, color: 'text-green-300', category: 'AI Models' },
-  { id: 'claude', name: 'Claude', icon: <Brain className="w-4 h-4" />, color: 'text-purple-300', category: 'AI Models' },
-  { id: 'dalle', name: 'DALL-E', icon: <Image className="w-4 h-4" />, color: 'text-pink-300', category: 'AI Models' },
+  // AI Agents
+  { id: 'gemini', name: 'Gemini Agent', icon: <Brain className="w-4 h-4" />, color: 'text-blue-300', category: 'AI Agents' },
+  { id: 'gpt4', name: 'GPT-4 Agent', icon: <Bot className="w-4 h-4" />, color: 'text-green-300', category: 'AI Agents' },
+  { id: 'claude', name: 'Claude Agent', icon: <Brain className="w-4 h-4" />, color: 'text-purple-300', category: 'AI Agents' },
+  { id: 'dalle', name: 'DALL-E Agent', icon: <Image className="w-4 h-4" />, color: 'text-pink-300', category: 'AI Agents' },
   
   // External Platforms
   { id: 'twitter-api', name: 'Twitter API', icon: <Twitter className="w-4 h-4" />, color: 'text-blue-300', category: 'Platforms' },
@@ -360,6 +361,7 @@ export default function CreateWorkflowPage() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -369,11 +371,26 @@ export default function CreateWorkflowPage() {
   const onNodesChange = useCallback((changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)), [setNodes]);
   const onEdgesChange = useCallback((changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)), [setEdges]);
   const onConnect = useCallback((params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
-  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => setSelectedNode(node.id), []);
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node.id);
+    setShowConfigPanel(true);
+  }, []);
 
   const deleteNode = (nodeId: string) => {
     setNodes(prev => prev.filter(node => node.id !== nodeId));
     setEdges(prev => prev.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
+    setSelectedNode(null);
+    setShowConfigPanel(false);
+  };
+
+  const updateNode = (nodeId: string, newData: any) => {
+    setNodes(prev => prev.map(node => 
+      node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
+    ));
+  };
+
+  const closeConfigPanel = () => {
+    setShowConfigPanel(false);
     setSelectedNode(null);
   };
 
@@ -758,6 +775,15 @@ export default function CreateWorkflowPage() {
             </Card>
           </div>
         </div>
+
+        {/* Node Configuration Panel */}
+        {showConfigPanel && (
+          <NodeConfigPanel
+            node={nodes.find(n => n.id === selectedNode) || null}
+            onClose={closeConfigPanel}
+            onUpdateNode={updateNode}
+          />
+        )}
       </div>
     );
   };
